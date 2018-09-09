@@ -62,21 +62,12 @@ void DrawSprite(int16_t x, int16_t y, const uint8_t *bitmap,
 	{
 		for (int i = 0; i < w; i++)
 		{
-			/*int pixIndex = j * w + i;
-			int block = pixIndex / 8;
-			uint8_t bitmask = 1 << (pixIndex % 8);
-			uint8_t pixels = bitmap[block];
-			uint8_t maskPixels = mask[block];
-			*/
-			
-			int blockX = i / 8;
 			int blockY = j / 8;
-			int blocksPerWidth = w / 8;
-			int blockIndex = blockY * blocksPerWidth + blockX;
-			uint8_t pixels = bitmap[blockIndex * 8 + i % 8];
-			uint8_t maskPixels = mask[blockIndex * 8 + i % 8];
+			int blockIndex = w * blockY + i;
+			uint8_t pixels = bitmap[blockIndex];
+			uint8_t maskPixels = mask[blockIndex];
 			uint8_t bitmask = 1 << (j % 8);
-			
+
 			if (maskPixels & bitmask)
 			{
 				if (x + i >= 0 && y + j >= 0)
