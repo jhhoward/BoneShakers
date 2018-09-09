@@ -120,6 +120,7 @@ void SetStartPositions()
 void InitGame()
 {
 	SetStartPositions();
+	ShowMessage(MessageType::None);
 }
 
 void UpdateLocalPlayer()
