@@ -72,6 +72,11 @@ void FillScreen(uint8_t colour)
   arduboy.fillScreen(colour);
 }
 
+uint8_t* GetScreenBuffer()
+{
+  return arduboy.getBuffer();
+}
+
 /*
 void DrawFilledRect(uint8_t x, uint8_t y, uint8_t w, uint8_t h, uint8_t colour)
 {

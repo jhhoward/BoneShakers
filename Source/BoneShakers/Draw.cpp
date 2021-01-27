@@ -180,6 +180,12 @@ const uint8_t patterns[] PROGMEM =
 	1, 1,
 };
 
+const uint8_t leftmask[] PROGMEM = {
+  0x00, 0x02, 0x02, 0x02, 0x03 };
+const uint8_t rightmask[] PROGMEM = {
+  0x00, 0x00, 0x01, 0x03, 0x03 };
+uint8_t wBuffer[DISPLAY_WIDTH];
+
 MessageType currentMessage = MessageType::None;
 uint8_t messageTimer = 0;
 
@@ -308,14 +314,16 @@ void Render()
 	int16_t cameraRightX = FixedSin(-cameraAngle + FIXED_ANGLE_90);
 	int16_t cameraRightZ = FixedCos(-cameraAngle + FIXED_ANGLE_90);
 
-	int y = DISPLAY_HEIGHT - 2;
+	int y = 24;
 
 	for (int x = -((2 * (int16_t)cameraAngle) & 63); x < DISPLAY_WIDTH; x += BACKGROUND_SIZE)
 	{
 		DrawBitmap(x, 0, background);
 	}
 
-	while (y > DISPLAY_HEIGHT / 3)
+	uint8_t* ptr = GetScreenBuffer() + 384;
+  
+	while (y < 63)
 	{ 
 		int16_t viewFwd = pgm_read_word(&viewFwdTable[y]);
 		
@@ -345,13 +353,16 @@ void Render()
 			{
 				uint8_t patternType = pgm_read_byte(&texPtr[texV * 8 + texU]);
 
-				//tex = ((tex >> 1) ^ ((x ^ y) & tex)) & 1;
-				const uint8_t* patternPtr = patterns + patternType * 4;
+				wBuffer[x] |= pgm_read_byte(leftmask + patternType) << (y & 7);
+				wBuffer[x + 1] |= pgm_read_byte(rightmask + patternType) << (y & 7);
 
-				PutPixel(x, y, pgm_read_byte(patternPtr++));
-				PutPixel(x + 1, y, pgm_read_byte(patternPtr++));
-				PutPixel(x, y + 1, pgm_read_byte(patternPtr++));
-				PutPixel(x + 1, y + 1, pgm_read_byte(patternPtr++));
+				//tex = ((tex >> 1) ^ ((x ^ y) & tex)) & 1;
+				//const uint8_t* patternPtr = patterns + patternType * 4;
+
+				//PutPixel(x, y, pgm_read_byte(patternPtr++));
+				//PutPixel(x + 1, y, pgm_read_byte(patternPtr++));
+				//PutPixel(x, y + 1, pgm_read_byte(patternPtr++));
+				//PutPixel(x + 1, y + 1, pgm_read_byte(patternPtr++));
 
 				//PutPixel(x, y, GetPattern(x, y, pattern));
 				//PutPixel(x + 1, y, GetPattern(x + 1, y, pattern));
@@ -360,13 +371,14 @@ void Render()
 			}
 		}
 
-		y-=2;
-//		while (y >= 0)
-//		{
-//			PutPixel(x, y, 1);
-//			PutPixel(x + 1, y, 1);
-//			y--;
-//		}
+		y += 2;
+                if ((y & 7) == 0) {
+                  for (uint8_t n = 0; n < DISPLAY_WIDTH; n++)
+                    {
+                      *ptr++ = wBuffer[n];
+                      wBuffer[n] = 0;
+                    }
+                }
 	}
 
 	/*for (int y = 0; y < DISPLAY_HEIGHT; y++)
